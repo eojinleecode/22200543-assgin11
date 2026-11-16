@@ -32,5 +32,39 @@ public class AttachmentController {
             .header(HttpHeaders.CONTENT_DISPOSITION, disposition)
             .body(resource);
     }
-    // STUDENT TODO: GET /attachments/{id}/view (image preview).
+
+    // 이미지 미리보기를 위한 GET 요청 처리
+    @GetMapping("/{id}/view")
+    public ResponseEntity<Resource> view(@PathVariable Long id) {
+        // ID를 이용해 DB에서 첨부파일 정보를 조회
+        // 존재하지 않는다면 오류를 반환
+        Attachment file = attachments.findById(id).orElseThrow(() ->
+                new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "첨부파일이 없습니다."));
+
+        // 이미지 파일인지 MIME 타입을 검사
+        String contentType = file.getContentType();
+
+        if (!"image/jpeg".equals(contentType) &&
+                !"image/png".equals(contentType) &&
+                !"image/gif".equals(contentType)) {
+            throw new ResponseStatusException(
+                    HttpStatus.UNSUPPORTED_MEDIA_TYPE,
+                    "이미지 파일만 미리보기가 가능합니다.");
+        }
+        // 파일이 존재하지 않는 경우 storage.load()에서 404 오류를 처리.
+        Resource resource = storage.load(file);
+
+        // 브라우저에서 다운로드 대신 이미지를 표시하도록 설정.
+        String disposition = ContentDisposition.inline()
+                .filename(file.getOriginalFilename(), StandardCharsets.UTF_8)
+                .build().toString();
+
+        // 이미지 타입과 파일 데이터를 HTTP 응답으로 전달.
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(contentType))
+                .header(HttpHeaders.CONTENT_DISPOSITION, disposition)
+                .header("X-Content-Type-Options", "nosniff")
+                .body(resource);
+    }
 }
