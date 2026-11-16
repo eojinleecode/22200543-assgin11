@@ -6,3 +6,23 @@ h1 { font-size:2rem; font-weight:750; letter-spacing:-0.04em; }
 .post-content { margin-top:1.5rem; white-space:pre-wrap; min-height:90px; line-height:1.8; }
 .table th { color:#64748b; font-size:.83rem; background:#f8fafc; }
 .table td, .table th { padding-top:1rem; padding-bottom:1rem; }
+
+body {
+    background: #eef4ff;
+    color: #22314d;
+}
+
+.card {
+    border: 1px solid #dbe5f5;
+    border-radius: 20px;
+    box-shadow: 0 6px 20px rgba(30, 60, 110, 0.08);
+}
+
+.btn-primary {
+    background-color: #315fbb;
+    border-color: #315fbb;
+}
+.btn-primary:hover {
+    background-color: #24488f;
+    border-color: #24488f;
+}

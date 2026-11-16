@@ -29,12 +29,13 @@ public class FileStorageService {
     }
 
     public Attachment store(MultipartFile file) {
+
         if (file.isEmpty()) throw new IllegalArgumentException("빈 파일은 업로드할 수 없습니다.");
-        String original = file.getOriginalFilename();
+        String original = file.getOriginalFilename(); //HTTP 요청을 통해 전달받은 원본 파일명 구함
         if (original == null || original.isBlank() || original.contains("/") || original.contains("\\") || original.contains(".."))
-            throw new IllegalArgumentException("잘못된 파일 이름입니다.");
+            throw new IllegalArgumentException("잘못된 파일 이름입니다."); //잘못된 값이 포함되어 있는지 검증
         if (original.length() > 240) throw new IllegalArgumentException("파일 이름이 너무 깁니다.");
-        int dot = original.lastIndexOf('.');
+        int dot = original.lastIndexOf('.'); //확장자 찾기 위해 마지막 . 찾기
         String ext = dot < 0 ? "" : original.substring(dot + 1).toLowerCase(Locale.ROOT);
         if (!ALLOWED.contains(ext)) throw new IllegalArgumentException("허용 형식: jpg, jpeg, png, gif, pdf, txt");
         if (file.getSize() > 10L * 1024 * 1024) throw new IllegalArgumentException("파일은 10MB 이하만 가능합니다.");
@@ -46,7 +47,7 @@ public class FileStorageService {
         // startsWith()를 통해  디렉토리 내부에 있는지 확인하여 Path Traversal 예방.
         if (!target.startsWith(uploadDir)) throw new IllegalArgumentException("잘못된 파일 경로입니다.");
 
-        //클라이언트에서 전달받은 실제 파일 데이터를 서버의 지정된 폴더에 저장
+        //클라이언트에서 전달받은 실제 파일 데이터를 복사하여 서버의 지정된 폴더에 저장
         try (InputStream input = file.getInputStream()) {
             Files.copy(input, target, StandardCopyOption.REPLACE_EXISTING);
             // Teaching sample: MIME type is inferred by extension, not trusted from request headers.
@@ -57,8 +58,8 @@ public class FileStorageService {
                 case "pdf" -> "application/pdf";
                 default -> "text/plain";
             };
-            return new Attachment(original, stored, contentType, file.getSize());
-        } catch (IOException e) {
+            return new Attachment(original, stored, contentType, file.getSize());// 엔티티 객체를 생성하여 반환
+        } catch (IOException e) {// 예외 발생시 디스크에서 즉시삭제, 오류코드 전송
             try { Files.deleteIfExists(target); } catch (IOException ignored) {}
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "파일 저장 실패", e);
         }
