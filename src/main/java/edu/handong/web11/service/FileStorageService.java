@@ -38,9 +38,15 @@ public class FileStorageService {
         String ext = dot < 0 ? "" : original.substring(dot + 1).toLowerCase(Locale.ROOT);
         if (!ALLOWED.contains(ext)) throw new IllegalArgumentException("허용 형식: jpg, jpeg, png, gif, pdf, txt");
         if (file.getSize() > 10L * 1024 * 1024) throw new IllegalArgumentException("파일은 10MB 이하만 가능합니다.");
+        // 중복 이름의 파일이 업로드될 때 덮어쓰이는 것을 방지하기 위함.
+        // UUID를 활용하여 서버에 저장될 고유한 파일명을 생성
         String stored = UUID.randomUUID() + "." + ext;
         Path target = uploadDir.resolve(stored).normalize();
+        // normalize()로 경로 경로를 정규화시킴.
+        // startsWith()를 통해  디렉토리 내부에 있는지 확인하여 Path Traversal 예방.
         if (!target.startsWith(uploadDir)) throw new IllegalArgumentException("잘못된 파일 경로입니다.");
+
+        //클라이언트에서 전달받은 실제 파일 데이터를 서버의 지정된 폴더에 저장
         try (InputStream input = file.getInputStream()) {
             Files.copy(input, target, StandardCopyOption.REPLACE_EXISTING);
             // Teaching sample: MIME type is inferred by extension, not trusted from request headers.

@@ -36,7 +36,9 @@ public class PostController {
         model.addAttribute("postForm", new PostForm());
         return "posts/form";
     }
-
+    // 클라이언트의 multipart/form-data 요청을 처리
+    // @ModelAttribute로 텍스트 입력값을 DTO에 바인딩함.
+    // @RequestParam을 통해 여러 개의 업로드 파일을 수신.
     @PostMapping("/posts")
     public String create(@Valid @ModelAttribute("postForm") PostForm form, BindingResult errors,
                          @RequestParam(name = "files", required = false) List<MultipartFile> files) {
